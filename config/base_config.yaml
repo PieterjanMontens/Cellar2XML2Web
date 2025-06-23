@@ -1,0 +1,47 @@
+kafka:
+  bootstrap_servers: kafka:9092
+  schema_registry: http://schema-registry:8081
+topics:
+  cmd_query_agent: cmd.query_agent
+  raw_sparql_out: raw.sparql.out
+  raw_sitemap_out: raw.sitemap.out
+  logs_app: logs.app
+  hb_query_agent: hb.query_agent
+  hb_sitemap_builder: hb.sitemap_builder
+  hb_web_builder: hb.web_builder
+  hb_web_agent: hb.web_agent
+sparql_queries:
+  OJ:
+    query: |
+      prefix cdm: <http://publications.europa.eu/ontology/cdm#> 
+      
+      select ?act ?eli ?celex ?resource_type ?title ?oj_number ?oj_collection  ?creating_agents where {
+        ?act rdf:type cdm:official-journal-act ;
+             # Conditions
+             cdm:official-journal-act_date_publication "<date>"^^xsd:date ;
+            
+             # Data
+             cdm:work_has_resource-type ?resource_type ;
+             cdm:work_title ?title ;
+             cdm:official-journal-act_number ?oj_number ;
+             cdm:official-journal-act_part_of_collection_document ?oj_collection ;
+             cdm:work_created_by_agent ?creating_agents ;
+             cdm:resource_legal_eli ?eli ;
+             cdm:resource_legal_id_celex ?celex;
+           cdm:resource_legal_number_natural_celex ?number.
+        FILTER (lang(?title) = "en")
+      } order by ASC(?number)
+    endpoint: https://publications.europa.eu/webapi/rdf/sparql
+    parameter:
+      - date
+    hierarchy:
+      - date
+      - oj_collection
+      - resource_type
+      - creating_agents
+xslt:
+  raw_to_sitemap: /app/xslt/raw_to_sitemap.xslt
+web:
+  eleventy_template_dir: /app/templates
+  output_dir: /app/output
+  debug_copy_to_runs: true  

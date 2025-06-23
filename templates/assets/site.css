@@ -1,0 +1,5 @@
+
+body { font-family: system-ui, sans-serif; max-width: 52rem; margin: 2rem auto; }
+details summary { list-style: none; }
+details[open] summary { color: #0366d6; }
+details > summary::marker { display: none; }

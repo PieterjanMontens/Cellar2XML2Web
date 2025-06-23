@@ -1,0 +1,130 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOO_AUTOPURGE_PURGE_INTERVAL: 24
+      ZOO_AUTOPURGE_SNAP_RETAIN_COUNT: 10
+      ZOO_ADMINSERVER_ENABLED: "true"
+      ZOO_ADMINSERVER_PORT: 8080
+    ports:
+      - "8081:8080"
+
+  zoo-navigator:
+    image: elkozmon/zoonavigator:latest
+    ports: ["9000:9000"]
+    environment:
+      ZOONAVIGATOR_ZK_SERVERS: zookeeper:2181
+      ZOONAVIGATOR_AUTO_CONNECT: "true"
+    depends_on: [zookeeper]
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    depends_on: [zookeeper]
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:latest
+    depends_on: [kafka]
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:9092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+
+  rest-proxy:
+    image: confluentinc/cp-kafka-rest:latest
+    depends_on: [kafka, schema-registry]
+    environment:
+      KAFKA_REST_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:9092
+      KAFKA_REST_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+    ports:
+      - "8082:8082"
+
+  query_agent:
+    build:
+      context: .
+      dockerfile: agents/Dockerfile
+    command: python -m agents.query_agent
+    volumes:
+      - ./config:/app/config
+      - ./xslt:/app/xslt
+      - ./agents:/app/agents
+      - ./runs:/runs 
+    depends_on: [kafka]
+    environment:
+      CONFIG_FILE: /app/config/base_config.yaml
+
+  sitemap_builder:
+    build:
+      context: .
+      dockerfile: agents/Dockerfile
+    command: python -m agents.sitemap_builder
+    volumes:
+      - ./config:/app/config
+      - ./xslt:/app/xslt
+      - ./agents:/app/agents
+      - ./runs:/runs 
+    depends_on: [kafka]
+    environment:
+      CONFIG_FILE: /app/config/base_config.yaml
+
+  web_builder:
+    build:
+      context: .
+      dockerfile: agents/Dockerfile
+    command: python -m agents.web_builder
+    volumes:
+      - ./config:/app/config
+      - ./templates:/app/templates
+      - ./output:/app/output
+      - ./agents:/app/agents
+      - ./runs:/runs 
+    depends_on: [kafka]
+    environment:
+      CONFIG_FILE: /app/config/base_config.yaml
+
+  web_agent:
+    build:
+      context: .
+      dockerfile: agents/Dockerfile
+    command: python -m agents.web_agent
+    volumes:
+      - ./output:/app/output
+      - ./config:/app/config
+    ports:
+      - "8080:8080"
+    depends_on: [kafka]
+    environment:
+      CONFIG_FILE: /app/config/base_config.yaml
+
+  control_panel:
+    image: nginx:alpine
+    volumes:
+      - ./control_panel:/usr/share/nginx/html:ro
+    ports:
+      - "3000:80"
+
+  runs_browser:
+    image: filebrowser/filebrowser:s6
+    container_name: runs-browser
+    volumes:
+      - ./runs:/srv:ro             
+      - ./temp/filebrowser:/config
+      - ./temp/filebrowser:/database
+    ports:
+      - "8085:80" # http://localhost:8085
+    environment:
+      FB_PORT: 80
+      FB_NOAUTH: true
+      
+    restart: unless-stopped
+
+networks:
+  default:
+    name: cellar2xml2web-net

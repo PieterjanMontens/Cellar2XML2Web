@@ -1,0 +1,19 @@
+
+---
+layout: layouts/base.njk
+title: OJ Sitemap Browser
+---
+
+<h2 class="text-lg font-semibold mb-4">Available sitemap views</h2>
+
+<ul class="space-y-2">
+  {% for issued, collections in collections.maps %}
+    {% for coll in collections %}
+      <li>
+        <a href="{{ issued }}/{{ coll | slug }}/" class="text-blue-600 hover:underline">
+          {{ issued | prettyDate }} — {{ coll }}
+        </a>
+      </li>
+    {% endfor %}
+  {% endfor %}
+</ul>
