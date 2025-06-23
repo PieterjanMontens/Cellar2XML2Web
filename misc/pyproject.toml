@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "cellar2web2xml-toolset"
+version = "0.1.0"
+description = ""
+authors = ["Pieterjan Montens <pieterjan@montens.net>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+graphviz = "^0.21"
+notebook = "^7.4.3"
+requests = "^2.32.4"
+lxml = "^5.4.0"
+pyyaml = "^6.0.2"
+jinja2 = "^3.1.6"
+python-ulid = "^3.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

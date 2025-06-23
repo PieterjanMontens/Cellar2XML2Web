@@ -1,0 +1,23 @@
+!#/bin/bash
+
+
+curl -G "https://publications.europa.eu/webapi/rdf/sparql" \
+  --data-urlencode "query=prefix cdm: <http://publications.europa.eu/ontology/cdm#>
+
+select ?act ?eli ?celex ?resource_type ?title ?oj_number ?oj_collection  ?creating_agents where {
+  ?act rdf:type cdm:official-journal-act ;
+       cdm:official-journal-act_date_publication \"2025-06-20\"^^xsd:date ;
+       cdm:work_has_resource-type ?resource_type ;
+       cdm:work_title ?title ;
+       cdm:official-journal-act_number ?oj_number ;
+       cdm:official-journal-act_part_of_collection_document ?oj_collection ;
+       cdm:work_created_by_agent ?creating_agents ;
+       cdm:resource_legal_eli ?eli ;
+       cdm:resource_legal_id_celex ?celex;
+       cdm:resource_legal_number_natural_celex ?number.
+} order by ASC(?number)" \
+  --data-urlencode "default-graph-uri=" \
+  --data-urlencode "format=application/sparql-results+xml" \
+  --data-urlencode "timeout=0" \
+  --data-urlencode "debug=on" \
+  -H "Accept: application/sparql-results+xml, application/xml;q=0.9"
