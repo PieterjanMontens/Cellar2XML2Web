@@ -96,7 +96,7 @@ const logPane = document.getElementById('logPane');
 
 function log_kafka(r) {
     data = JSON.parse(atob(r.value));
-    appendLog(`${data.level} ${data.component}: ${data.msg}`);
+    appendLog(`${data.level} ${data.component} | ${data.msg}`);
 }
 
 function appendLog(msg) {

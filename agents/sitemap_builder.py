@@ -85,6 +85,8 @@ while True:
             value={**payload, "sitemap": sitemap_txt}
         )
         PRODUCER.flush()
+    except KeyboardInterrupt:
+        log.info("Shutting down sitemap builder.")
     except Exception as e:
         print("Catched exception ", e)
         log.exception(e)

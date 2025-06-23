@@ -10,6 +10,8 @@ topics:
   hb_sitemap_builder: hb.sitemap_builder
   hb_web_builder: hb.web_builder
   hb_web_agent: hb.web_agent
+  cmd_web_agent_deploy: cmd.web_agent.deploy
+  cmd_web_agent_clean:  cmd.web_agent.clean
 sparql_queries:
   OJ:
     query: |

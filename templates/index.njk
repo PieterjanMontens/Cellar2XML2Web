@@ -1,4 +1,3 @@
-
 ---
 layout: layouts/base.njk
 title: OJ Sitemap Browser
@@ -7,13 +6,13 @@ title: OJ Sitemap Browser
 <h2 class="text-lg font-semibold mb-4">Available sitemap views</h2>
 
 <ul class="space-y-2">
-  {% for issued, collections in collections.maps %}
-    {% for coll in collections %}
-      <li>
-        <a href="{{ issued }}/{{ coll | slug }}/" class="text-blue-600 hover:underline">
-          {{ issued | prettyDate }} — {{ coll }}
-        </a>
-      </li>
-    {% endfor %}
+  {# collections.maps is now an ARRAY of objects #}
+  {% for map in collections.maps | sort(attribute='issued') %}
+    <li>
+      <a href="/{{ map.issued }}/{{ map.collection | slug }}/"
+         class="text-blue-600 hover:underline">
+        {{ map.issued | prettyDate }} — {{ map.collection }}
+      </a>
+    </li>
   {% endfor %}
 </ul>

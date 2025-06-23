@@ -17,6 +17,10 @@ OUTPUT_DIR = Path(CONFIG["web"]["output_dir"])
 log = _logger("web_builder", log_topic=TOPICS["logs_app"])
 log.info("Starting web builder")
 
+# ---------- INIT ----------
+log.debug('Trying to ensure fast-xml-parser availability') 
+subprocess.check_call(["npm", "install", "--no-save", "fast-xml-parser@^5"], cwd="/app/templates")
+
 # ---------- Avro in-schema ----------
 IN_SCHEMA = '''
 {
@@ -43,8 +47,6 @@ PRODUCER, _  = create_avro_producer(OUT_SCHEMA)
 CONSUMER = create_avro_consumer("web_builder",
                                 [TOPICS["raw_sitemap_out"]],
                                 IN_SCHEMA)
-
-
 def build_site():
     subprocess.check_call(["npx", "@11ty/eleventy", "--input", TEMPLATES, "--output", OUTPUT_DIR])
 
@@ -61,24 +63,27 @@ while True:
         payload = msg.value()
         log.info("Message received, Run id is %s", payload['run_id'])
 
-        run_dir  = SHARED_DIR / payload["run_id"]
-        run_dir.mkdir(parents=True, exist_ok=True)
-
-        # 1)  write Eleventy input files *inside* the run-folder
-        (run_dir / "sitemap.xml").write_text(payload["sitemap"])
-        (run_dir / "metadata.json").write_text(json.dumps(payload, indent=2))
+        # 1)  write Eleventy input files *inside* the site
+        site_dir = OUTPUT_DIR / payload["run_id"]
+        site_dir.mkdir(parents=True, exist_ok=True)
+        (site_dir / "sitemap.xml").write_text(payload["sitemap"])
+        (site_dir / "metadata.json").write_text(json.dumps(payload, indent=2))
 
         log.info("Generating static HTML files...")
         # 2)  call Eleventy, output to OUTPUT_DIR/<run_id>/
-        site_dir = OUTPUT_DIR / payload["run_id"]
+        env = os.environ.copy()
+        env["RUN_DIR"] = str(site_dir)
         subprocess.check_call([
             "eleventy",
             "--input", "/app/templates",
             "--output", str(site_dir)
-        ], cwd=str(run_dir))        # Eleventy’s CWD → run-dir (has sitemap.xml)
+        ], cwd="/app/templates", env=env)        # Eleventy’s CWD → run-dir (has sitemap.xml)
 
         log.info("Static HTML files generated, packaging...")
         # 3a)  tar-gz the rendered site for inspection
+        run_dir = SHARED_DIR / payload["run_id"]
+        run_dir.mkdir(parents=True, exist_ok=True)
+
         tar_path = run_dir / "site.tar.gz"
         with tarfile.open(tar_path, "w:gz") as tar:
             tar.add(site_dir, arcname="site")
@@ -90,8 +95,10 @@ while True:
                 shutil.rmtree(debug_dir)
             shutil.copytree(site_dir, debug_dir)
 
-        log.info("Site built → %s (and archived at %s)", site_dir, tar_path)
+        log.info("Site built and staged → %s (and archived at %s)", site_dir, tar_path)
 
+    except KeyboardInterrupt:
+        log.info("Shutting down web builder.")
     except Exception as e:
         print("Catched exception ", e)
         log.exception(e)

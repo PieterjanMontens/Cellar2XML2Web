@@ -18,16 +18,29 @@
 const fs = require('fs');
 const { XMLParser } = require('fast-xml-parser');
 const path = require('path');
+const runDir  = process.env.RUN_DIR || process.cwd();
 
 module.exports = () => {
-  const xmlPath = path.join(__dirname, '..', 'sitemap.xml');
-  if (!fs.existsSync(xmlPath)) return [];
+  const xmlPath = path.join(runDir, 'sitemap.xml');
+
+  if (!fs.existsSync(xmlPath)) {
+    throw new Error(
+      `[sitemap.js] sitemap.xml not found at ${xmlPath} — aborting build.`
+    );
+  }
 
   const xml = fs.readFileSync(xmlPath, 'utf8');
   const parser = new XMLParser({ ignoreAttributes:false });
   const data = parser.parse(xml);
 
   const urlset = data.urlset.url || [];
+
+  if (urlset.length === 0) {
+    throw new Error(
+      "[sitemap.js] sitemap.xml parsed OK but contains no <url> entries."
+    );
+  }
+
   return urlset.map(u => ({
     loc:           u.loc,
     title:         u['akn4eu:docTitle']?.literal ?? '',
