@@ -1,0 +1,57 @@
+{# --------------------------------------------------------------------------
+   layouts/base.njk
+   --------------------------------------------------------------------------
+   • Works for both the main index page and the per-collection pages.
+   • Pulls in the global CSS at /assets/site.css (already copied via passthrough).
+   • Uses the page front-matter `title` (falls back to “C2X2W”).
+   • Shows a simple breadcrumb back to the index when you’re not on /index.html.
+   • Prints the run-id and build time when those values are present
+     in the page’s data (handy for debugging).
+
+   Variables that may be present:
+     title         – set in each template’s front-matter
+     page.url      – Eleventy-provided; e.g. “/2025-06-20/oj-c/”
+     run_id        – injected in web_builder.py when it writes metadata.json
+     build_time    – idem (ISO 8601 string, e.g. “2025-06-23T13:45:12Z”)
+
+   -------------------------------------------------------------------------- #}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ title or 'C2X2W' }}</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="/assets/site.css" rel="stylesheet">
+
+  {# Small convenience: add generated-time to the page source #}
+  {% if build_time %}
+    <meta name="generator" content="C2X2W {{ run_id }} {{ build_time }}">
+  {% endif %}
+</head>
+
+<body class="py-6 px-4 mx-auto max-w-screen-md text-base text-gray-800">
+  <header class="mb-8 border-b pb-4">
+    {# Breadcrumb — only show “Home” link when not on root #}
+    {% if page.url !== '/' %}
+      <nav class="text-sm mb-2">
+        <a href="/" class="text-blue-600 hover:underline">Home</a>
+        <span aria-hidden="true">/</span>
+        <span>{{ title }}</span>
+      </nav>
+    {% endif %}
+
+    <h1 class="text-2xl font-semibold">{{ title or 'C2X2W' }}</h1>
+  </header>
+
+  <main>
+    {{ content | safe }}
+  </main>
+
+  <footer class="mt-12 pt-4 border-t text-sm text-gray-600">
+    {% if run_id %}
+      Run <code>{{ run_id }}</code> ·
+    {% endif %}
+    Generated {{ build_time or "" }}
+  </footer>
+</body>
+</html>

@@ -9,7 +9,7 @@ title: OJ Sitemap Browser
   {# collections.maps is now an ARRAY of objects #}
   {% for map in collections.maps | sort(attribute='issued') %}
     <li>
-      <a href="/{{ map.issued }}/{{ map.collection | slug }}/"
+      <a href="./{{ map.issued }}/{{ map.collection | slug }}/"
          class="text-blue-600 hover:underline">
         {{ map.issued | prettyDate }} — {{ map.collection }}
       </a>

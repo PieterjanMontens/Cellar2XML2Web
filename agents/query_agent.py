@@ -118,6 +118,7 @@ while True:
         PRODUCER.flush()
     except KeyboardInterrupt:
         log.info("Shutting down query agent.")
+        break
     except Exception as e:
         print("Catched exception ", e)
         log.exception(e)

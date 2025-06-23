@@ -99,6 +99,7 @@ while True:
 
     except KeyboardInterrupt:
         log.info("Shutting down web builder.")
+        break
     except Exception as e:
         print("Catched exception ", e)
         log.exception(e)

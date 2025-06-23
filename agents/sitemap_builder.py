@@ -87,6 +87,7 @@ while True:
         PRODUCER.flush()
     except KeyboardInterrupt:
         log.info("Shutting down sitemap builder.")
+        break
     except Exception as e:
         print("Catched exception ", e)
         log.exception(e)

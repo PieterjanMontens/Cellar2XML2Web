@@ -11,11 +11,10 @@ docker compose restart
 docker compose restart [agent]
 ```
 
-1. Browse to `http://localhost:3000` – pick a date and press **Run**  
-2. Follow logs with `docker compose logs -f`  
-3. Generated site becomes available at `http://localhost:8080/<date>/`
+1. Browse to the control panel at `http://localhost:3000` – pick a date and press **Run**  
+2. Follow logs with `docker compose logs -f`, or in the control panel
+3. Once published, generated site becomes available at `http://localhost:8080/`
 4. Zookeeper can be monitored at `http://localhost:9000/` (connection string: `zookeeper:2181`)
-
 
 **Happy hacking!**
 
@@ -50,4 +49,3 @@ instead use pre-registered schemas
 | `config.updates`* | Control Panel (future) | All agents | JSON | Hot-reload shared YAML without restarts. |
 | `*.DLQ`* | Any agent | Ops tooling | JSON | Dead-letter queues for failed deserialisation / validation. |
 
-\* *Optional topics not yet wired in the skeleton.*

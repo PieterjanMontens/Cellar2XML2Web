@@ -95,6 +95,7 @@ services:
       dockerfile: agents/Dockerfile
     command: python -m agents.web_agent
     volumes:
+      - ./agents:/app/agents
       - ./output:/srv/staging
       - ./prod:/srv/prod
       - ./config:/app/config
